@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ロト7 ミドルコア・2-3-2 ジェネレーター</title>
+<style>
+  :root{
+    --ink:#1c2b24;
+    --paper:#f6f3ea;
+    --low:#3f6b52;
+    --mid:#b5842a;
+    --high:#8a3b3b;
+    --line:#d8d0bd;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Hiragino Mincho ProN","Yu Mincho",serif;
+    padding:32px 20px 60px;
+  }
+  .wrap{max-width:560px;margin:0 auto;}
+  h1{
+    font-size:22px;
+    letter-spacing:.04em;
+    margin:0 0 4px;
+    font-weight:700;
+  }
+  .sub{
+    font-size:13px;
+    color:#6b6455;
+    margin:0 0 28px;
+    line-height:1.7;
+  }
+  .disclaimer{
+    border-left:3px solid var(--high);
+    background:#fbeeee;
+    padding:12px 14px;
+    font-size:12.5px;
+    line-height:1.8;
+    color:#5c3232;
+    margin-bottom:28px;
+  }
+  button{
+    width:100%;
+    padding:16px;
+    font-size:15px;
+    font-family:inherit;
+    letter-spacing:.05em;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    cursor:pointer;
+    transition:opacity .15s;
+  }
+  button:active{opacity:.75;}
+  .result{
+    margin-top:28px;
+    display:none;
+  }
+  .result.show{display:block;}
+  .legend{
+    display:flex;
+    gap:16px;
+    justify-content:center;
+    font-size:11.5px;
+    color:#6b6455;
+    margin-bottom:20px;
+  }
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+  .set{
+    border-top:1px solid var(--line);
+    padding:16px 0;
+  }
+  .set:first-of-type{border-top:none;}
+  .set-label{
+    font-size:11.5px;
+    color:#9a9280;
+    letter-spacing:.06em;
+    margin-bottom:10px;
+  }
+  .balls{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .ball{
+    width:44px;height:44px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:700;
+    color:#fff;
+    flex-shrink:0;
+  }
+  .ball.low{background:var(--low);}
+  .ball.mid{background:var(--mid);}
+  .ball.high{background:var(--high);}
+  .breakdown{
+    font-size:12px;
+    color:#8c8571;
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ロト7 2:3:2 ジェネレーター</h1>
+  <p class="sub">低帯(01–12)から2個・中帯(13–24)から3個・高帯(25–37)から2個をランダムに選びます。</p>
+
+  <div class="disclaimer">
+    宝くじは各回が独立した抽選です。過去に「2:3:2」構成が多く出ていたとしても、それは次回の当選確率を変えません。このツールは番号選びに構造を持たせたい方向けの遊び道具であり、当選確率(1/10,295,472)を高めるものではありません。
+  </div>
+
+  <button onclick="generate()">5パターン生成する</button>
+
+  <div class="result" id="result">
+    <div class="legend">
+      <span><span class="dot" style="background:var(--low)"></span>低帯 01–12</span>
+      <span><span class="dot" style="background:var(--mid)"></span>中帯 13–24</span>
+      <span><span class="dot" style="background:var(--high)"></span>高帯 25–37</span>
+    </div>
+    <div id="sets"></div>
+  </div>
+</div>
+
+<script>
+function pick(min, max, count){
+  const pool = [];
+  for(let i=min;i<=max;i++) pool.push(i);
+  for(let i=pool.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [pool[i],pool[j]] = [pool[j],pool[i]];
+  }
+  return pool.slice(0,count).sort((a,b)=>a-b);
+}
+
+function generate(){
+  const setsEl = document.getElementById('sets');
+  setsEl.innerHTML = '';
+
+  for(let i=1;i<=5;i++){
+    const low = pick(1,12,2);
+    const mid = pick(13,24,3);
+    const high = pick(25,37,2);
+
+    const setEl = document.createElement('div');
+    setEl.className = 'set';
+
+    const label = document.createElement('div');
+    label.className = 'set-label';
+    label.textContent = `第${i}案`;
+    setEl.appendChild(label);
+
+    const ballsEl = document.createElement('div');
+    ballsEl.className = 'balls';
+    [[low,'low'],[mid,'mid'],[high,'high']].forEach(([arr,cls])=>{
+      arr.forEach(n=>{
+        const d = document.createElement('div');
+        d.className = 'ball ' + cls;
+        d.textContent = String(n).padStart(2,'0');
+        ballsEl.appendChild(d);
+      });
+    });
+    setEl.appendChild(ballsEl);
+
+    const breakdown = document.createElement('div');
+    breakdown.className = 'breakdown';
+    breakdown.textContent =
+      `低帯: ${low.map(n=>String(n).padStart(2,'0')).join('・')}　中帯: ${mid.map(n=>String(n).padStart(2,'0')).join('・')}　高帯: ${high.map(n=>String(n).padStart(2,'0')).join('・')}`;
+    setEl.appendChild(breakdown);
+
+    setsEl.appendChild(setEl);
+  }
+
+  document.getElementById('result').classList.add('show');
+}
+</script>
+</body>
+</html>
